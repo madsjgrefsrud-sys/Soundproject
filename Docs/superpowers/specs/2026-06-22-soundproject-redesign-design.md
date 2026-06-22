@@ -1,7 +1,7 @@
 # Soundproject Redesign — Design
 
 Date: 2026-06-22
-Status: Approved by user, pending spec review
+Status: Approved
 
 ## 1. Summary
 

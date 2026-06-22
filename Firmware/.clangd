@@ -1,0 +1,22 @@
+CompileFlags:
+  Add:
+    - -xc++
+    - -DARDUINO=10819
+    - -DARDUINO_ARCH_ESP32
+    - -DARDUINO_ESP32S3_DEV
+    - -DARDUINO_BOARD="ESP32S3_DEV"
+    - -DARDUINO_VARIANT="esp32s3"
+    - -DARDUINO_USB_MODE=1
+    - -DARDUINO_USB_CDC_ON_BOOT=1
+    - -DESP32
+    - -DCORE_DEBUG_LEVEL=0
+    - -isystemC:/Users/Madsj/AppData/Local/Arduino15/packages/esp32/hardware/esp32/3.3.8/cores/esp32
+    - -isystemC:/Users/Madsj/AppData/Local/Arduino15/packages/esp32/hardware/esp32/3.3.8/variants/esp32s3
+    - -isystemC:/Users/Madsj/AppData/Local/Arduino15/packages/esp32/hardware/esp32/3.3.8/libraries/USB/src
+    - -isystemC:/Users/Madsj/Desktop/ESP32_Soundproject/libraries/MIDI/src
+    - -isystemC:/Users/Madsj/AppData/Local/Arduino15/packages/esp32/tools/esp32-libs/3.3.8/include
+    - --target=xtensa-esp32s3-elf
+  Compiler: C:/Users/Madsj/AppData/Local/Arduino15/packages/esp32/tools/esp-x32/2601/bin/xtensa-esp32s3-elf-g++.exe
+
+Index:
+  Background: Build

@@ -1,0 +1,7 @@
+PyQt6==6.11.0
+mido==1.3.3
+python-rtmidi==1.5.8
+pycaw==20251023
+pywin32==311
+vgamepad==0.1.0
+comtypes==1.4.16

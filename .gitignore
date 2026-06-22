@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# PyInstaller build output (packaging/*.spec IS tracked)
+Python/build/
+Python/dist/
+
+# Local config (real config now lives in %AppData%\Soundproject\)
+Python/config.json
+
+# Vendored third-party library (has its own nested .git checkout)
+libraries/
+
+# Brainstorming companion artifacts
+.superpowers/

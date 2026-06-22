@@ -19,3 +19,6 @@ libraries/
 
 # Local Claude Code settings (personal, not shared)
 .claude/settings.local.json
+
+# Git worktrees used for isolated implementation work
+.worktrees/

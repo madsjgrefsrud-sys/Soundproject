@@ -16,3 +16,6 @@ libraries/
 
 # Brainstorming companion artifacts
 .superpowers/
+
+# Local Claude Code settings (personal, not shared)
+.claude/settings.local.json

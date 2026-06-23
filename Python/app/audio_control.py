@@ -1,6 +1,10 @@
+import logging
+
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 
 from .config import Config
+
+logger = logging.getLogger(__name__)
 
 
 class Inputs:
@@ -16,24 +20,23 @@ class Inputs:
         return None
 
     def bind_all_sliders(self):
-        # Debug: list all running audio sessions
         sessions = AudioUtilities.GetAllSessions()
         for s in sessions:
             if s.Process:
-                print(f"  Running: {s.Process.name()}")
+                logger.debug("Running: %s", s.Process.name())
 
         for cc, app_info in self.config.sliders.items():
             app_name = app_info["app"]
             app      = self.config.apps.get(app_name)
             if app is None:
-                print(f"App '{app_name}' not found in config")
+                logger.debug("App '%s' not found in config", app_name)
                 continue
             vol = self.get_app_volume(app["exe"])
             if vol:
                 self.volumes[f"s{cc}"] = vol
-                print(f"Bound s{cc} -> {app_name}")
+                logger.debug("Bound s%s -> %s", cc, app_name)
             else:
-                print(f"Not running: {app_name} ({app['exe']})")
+                logger.debug("Not running: %s (%s)", app_name, app["exe"])
 
 
 class Control:

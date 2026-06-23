@@ -24,7 +24,7 @@ def render(size: int) -> Image.Image:
 def main():
     out_path = Path(__file__).parent / "icon.ico"
     images = [render(size) for size in SIZES]
-    images[0].save(out_path, format="ICO", sizes=[(s, s) for s in SIZES])
+    images[-1].save(out_path, format="ICO", sizes=[(s, s) for s in SIZES])
     print(f"Wrote {out_path}")
 
 

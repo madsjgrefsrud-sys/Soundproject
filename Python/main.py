@@ -1,38 +1,31 @@
 import sys
 import threading
 import time
+
 from PyQt6.QtWidgets import QApplication
-from gui import MainWindow
-from config import Config
-from Soundprojekt_pakke import Inputs, Control, Button_Control
-from input import MidiInput
 
-# Load JSON config
-config = Config()
-
-# Set up volume control and buttons
-inputs  = Inputs(config)
-control = Control()
-buttons = Button_Control(config)
-
-# Start MIDI reader (non-crashing if no device)
-midi = MidiInput()
-
-# Bind sliders to apps on startup
-inputs.bind_all_sliders()
-
-print("MIDI system active...")
-
-# Start GUI
-app = QApplication(sys.argv)
-win = MainWindow()
-win.show()
+from app.config import Config
+from app.midi_input import MidiInput
+from app.audio_control import Inputs, Control
+from app.gamepad_control import Button_Control
+from app.gui.main_window import MainWindow, apply_palette
 
 
-def midi_loop():
+def dispatch_midi_message(msg, inputs, control, buttons, bridge):
+    """Route one MIDI message to the audio/gamepad backends and the GUI bridge."""
+    if msg.type == "control_change":
+        control.volum_control(msg.control, msg.value, inputs)
+        bridge.emit_cc(msg.control, msg.value)
+    elif msg.type == "note_on":
+        buttons.handle_midi(msg)
+        bridge.emit_note_on(msg.note, msg.velocity)
+    elif msg.type == "note_off":
+        bridge.emit_note_off(msg.note, msg.velocity)
+
+
+def midi_loop(midi, inputs, control, buttons, bridge):
     last_bind = 0
     while True:
-        # Try to reconnect if device was plugged in after startup
         if not midi.connected:
             midi.reconnect()
             if midi.connected:
@@ -41,30 +34,41 @@ def midi_loop():
         msg = midi.read()
         now = time.time()
 
-        # Rebind sliders every 5 seconds in case apps opened/closed
         if now - last_bind > 5:
             inputs.bind_all_sliders()
             last_bind = now
 
         if msg is None:
-            time.sleep(0.001)  # Avoid busy-spinning when idle
+            time.sleep(0.001)
             continue
 
         print(f"MIDI: {msg}")
-
-        if msg.type == "control_change":
-            control.volum_control(msg.control, msg.value, inputs)
-            win.bridge.emit_cc(msg.control, msg.value)
-
-        elif msg.type == "note_on":
-            buttons.handle_midi(msg)
-            win.bridge.emit_note_on(msg.note, msg.velocity)
-
-        elif msg.type == "note_off":
-            win.bridge.emit_note_off(msg.note, msg.velocity)
+        dispatch_midi_message(msg, inputs, control, buttons, bridge)
 
 
-# Run MIDI loop in background
-threading.Thread(target=midi_loop, daemon=True).start()
+def main():
+    config  = Config()
+    inputs  = Inputs(config)
+    control = Control()
+    buttons = Button_Control(config)
+    midi    = MidiInput()
 
-sys.exit(app.exec())
+    inputs.bind_all_sliders()
+    print("MIDI system active...")
+
+    app = QApplication(sys.argv)
+    apply_palette(app)
+    win = MainWindow(config)
+    win.show()
+
+    threading.Thread(
+        target=midi_loop,
+        args=(midi, inputs, control, buttons, win.bridge),
+        daemon=True,
+    ).start()
+
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()

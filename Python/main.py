@@ -26,27 +26,24 @@ def dispatch_midi_message(msg, inputs, control, buttons, bridge):
 def midi_loop(midi, inputs, control, buttons, bridge):
     last_bind = 0
     while True:
-        try:
-            if not midi.connected:
-                midi.reconnect()
-                if midi.connected:
-                    inputs.bind_all_sliders()
-
-            msg = midi.read()
-            now = time.time()
-
-            if now - last_bind > 5:
+        if not midi.connected:
+            midi.reconnect()
+            if midi.connected:
                 inputs.bind_all_sliders()
-                last_bind = now
 
-            if msg is None:
-                time.sleep(0.001)
-                continue
+        msg = midi.read()
+        now = time.time()
 
-            print(f"MIDI: {msg}")
-            dispatch_midi_message(msg, inputs, control, buttons, bridge)
-        except Exception as e:
-            print(f"MIDI loop error: {e}")
+        if now - last_bind > 5:
+            inputs.bind_all_sliders()
+            last_bind = now
+
+        if msg is None:
+            time.sleep(0.001)
+            continue
+
+        print(f"MIDI: {msg}")
+        dispatch_midi_message(msg, inputs, control, buttons, bridge)
 
 
 def main():

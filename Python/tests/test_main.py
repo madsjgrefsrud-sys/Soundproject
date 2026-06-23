@@ -1,7 +1,13 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-from main import dispatch_midi_message
+import pytest
+
+from main import dispatch_midi_message, midi_loop
+
+
+class _StopLoop(BaseException):
+    """Escapes `except Exception` so tests can break an intentional `while True`."""
 
 
 def test_dispatch_control_change_sets_volume_and_emits_cc():
@@ -48,3 +54,16 @@ def test_dispatch_unknown_type_does_nothing():
     bridge.emit_note_on.assert_not_called()
     bridge.emit_note_off.assert_not_called()
     bridge.emit_cc.assert_not_called()
+
+
+def test_midi_loop_survives_exception_and_continues(capsys):
+    midi = MagicMock()
+    midi.connected = True
+    midi.read.side_effect = [RuntimeError("boom"), _StopLoop()]
+    inputs, control, buttons, bridge = MagicMock(), MagicMock(), MagicMock(), MagicMock()
+
+    with pytest.raises(_StopLoop):
+        midi_loop(midi, inputs, control, buttons, bridge)
+
+    assert midi.read.call_count == 2
+    assert "boom" in capsys.readouterr().out

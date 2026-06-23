@@ -1,4 +1,13 @@
+import os
 import sys
+
+if sys.stdout is None or sys.stderr is None:
+    _log_dir = os.path.join(os.environ.get("APPDATA", "."), "Soundproject")
+    os.makedirs(_log_dir, exist_ok=True)
+    _log_file = open(os.path.join(_log_dir, "soundproject.log"), "w", buffering=1)
+    sys.stdout = _log_file
+    sys.stderr = _log_file
+
 import threading
 import time
 

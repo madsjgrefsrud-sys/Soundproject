@@ -57,11 +57,10 @@ Firmware/
 
 `gui.py`, `config.py`, `input.py`, `Soundprojekt_pakke.py` at the old `Python/` root are deleted once their replacements are in place and verified (Task 14).
 
-Four concrete robustness fixes land along the way (in scope per the approved design's "general cleanup, check what can be improved or fixed" — the first two are named directly in the design spec section 4, the third was found while drafting this plan, the fourth while implementing Task 5):
+Three concrete robustness fixes land along the way (in scope per the approved design's "general cleanup, check what can be improved or fixed" — the first two are named directly in the design spec section 4, the third was found while drafting this plan):
 1. **vgamepad/ViGEmBus crash on launch** — `vg.VX360Gamepad()` is currently constructed unguarded at import time (Task 6).
 2. **Config path** — moves from a working-directory-relative `config.json` to `%AppData%\Soundproject\config.json`, so the packaged `.exe` behaves the same regardless of how it's launched (Task 2).
 3. **Two independent `Config` instances** — old `main.py` builds one `Config()` for the MIDI backend and `MainWindow` builds a *second, separate* `Config()` internally. Editing a button/slider in the GUI saves to disk but the running MIDI backend keeps using its original in-memory copy, so remaps silently don't take effect until restart. Fixed by passing one shared `Config` instance into `MainWindow` (Task 10).
-4. **Debug print spam** — `bind_all_sliders()` printed a full audio-session dump plus per-slider bind/skip lines to stdout on every call; since Task 11's `midi_loop` calls it every 5 seconds for the app's entire lifetime, this spammed the console indefinitely. Fixed by routing through `logging.debug()` instead of `print()`, which is silent by default (Task 5).
 
 ---
 
@@ -505,7 +504,6 @@ git commit -m "Add app.midi_input (relocated from input.py, unchanged behavior)"
 
 `Python/tests/test_audio_control.py`:
 ```python
-import logging
 from unittest.mock import MagicMock
 
 from app import audio_control as audio_control_module
@@ -596,52 +594,6 @@ def test_volum_control_drops_stale_reference_on_exception(tmp_path):
     Control().volum_control(cc_number="1", cc_value=64, inputs=inputs)
 
     assert "s1" not in inputs.volumes
-
-
-def test_bind_all_sliders_does_not_print_anything(monkeypatch, tmp_path, capsys):
-    session = make_session("Chrome.exe")
-    monkeypatch.setattr(audio_control_module.AudioUtilities, "GetAllSessions", lambda: [session])
-
-    config = Config(path=tmp_path / "config.json")
-    config.sliders = {
-        "1": {"app": "Chrome"},
-        "2": {"app": "Discord"},
-        "3": {"app": "Nonexistent"},
-    }
-    config.apps = {
-        "Chrome":  {"exe": "chrome.exe"},
-        "Discord": {"exe": "discord.exe"},
-    }
-    inputs = Inputs(config)
-
-    inputs.bind_all_sliders()
-
-    assert capsys.readouterr().out == ""
-
-
-def test_bind_all_sliders_logs_session_and_binding_details_at_debug_level(monkeypatch, tmp_path, caplog):
-    session = make_session("Chrome.exe")
-    monkeypatch.setattr(audio_control_module.AudioUtilities, "GetAllSessions", lambda: [session])
-
-    config = Config(path=tmp_path / "config.json")
-    config.sliders = {
-        "1": {"app": "Chrome"},
-        "2": {"app": "Discord"},
-        "3": {"app": "Nonexistent"},
-    }
-    config.apps = {
-        "Chrome":  {"exe": "chrome.exe"},
-        "Discord": {"exe": "discord.exe"},
-    }
-    inputs = Inputs(config)
-
-    with caplog.at_level(logging.DEBUG, logger="app.audio_control"):
-        inputs.bind_all_sliders()
-
-    assert "Chrome.exe" in caplog.text
-    assert "Bound s1" in caplog.text
-    assert "Not running: Discord" in caplog.text
-    assert "Nonexistent" in caplog.text
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -649,17 +601,13 @@ def test_bind_all_sliders_logs_session_and_binding_details_at_debug_level(monkey
 Run: `cd Python && python -m pytest tests/test_audio_control.py -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'app.audio_control'`
 
-- [ ] **Step 3: Write the implementation (logic identical to the old `Inputs`/`Control` classes in `Soundprojekt_pakke.py`, except `bind_all_sliders()` logs through `logging.debug()` instead of `print()` — see robustness fix #4 above)**
+- [ ] **Step 3: Write the implementation (logic identical to the old `Inputs`/`Control` classes in `Soundprojekt_pakke.py`)**
 
 `Python/app/audio_control.py`:
 ```python
-import logging
-
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 
 from .config import Config
-
-logger = logging.getLogger(__name__)
 
 
 class Inputs:
@@ -678,20 +626,20 @@ class Inputs:
         sessions = AudioUtilities.GetAllSessions()
         for s in sessions:
             if s.Process:
-                logger.debug("Running: %s", s.Process.name())
+                print(f"  Running: {s.Process.name()}")
 
         for cc, app_info in self.config.sliders.items():
             app_name = app_info["app"]
             app      = self.config.apps.get(app_name)
             if app is None:
-                logger.debug("App '%s' not found in config", app_name)
+                print(f"App '{app_name}' not found in config")
                 continue
             vol = self.get_app_volume(app["exe"])
             if vol:
                 self.volumes[f"s{cc}"] = vol
-                logger.debug("Bound s%s -> %s", cc, app_name)
+                print(f"Bound s{cc} -> {app_name}")
             else:
-                logger.debug("Not running: %s (%s)", app_name, app["exe"])
+                print(f"Not running: {app_name} ({app['exe']})")
 
 
 class Control:
@@ -712,7 +660,7 @@ class Control:
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `cd Python && python -m pytest tests/test_audio_control.py -v`
-Expected: 9 passed
+Expected: 7 passed
 
 - [ ] **Step 5: Commit**
 

@@ -37,9 +37,9 @@ above, from `Python/`:
 "%LocalAppData%\Programs\Inno Setup 6\ISCC.exe" packaging\installer.iss
 ```
 
-Produces `dist\Soundproject-Setup-1.0.0.exe` — a single file that installs the app,
-shortcuts, and the ViGEmBus driver in one click. This is what to hand to anyone who
-isn't building from source.
+Produces `dist\Soundproject-Setup-<version>.exe` (version comes from `MyAppVersion` in
+`installer.iss`) — a single file that installs the app, shortcuts, and the ViGEmBus
+driver in one click. This is what to hand to anyone who isn't building from source.
 
 ## One-time external dependency
 

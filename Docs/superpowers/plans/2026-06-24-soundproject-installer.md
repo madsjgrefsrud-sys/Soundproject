@@ -70,8 +70,10 @@ Expected: exits 0, reports `Successfully installed`.
 Expected: prints Inno Setup Compiler version/usage banner. If winget installed it somewhere else, find it with:
 
 ```bash
-find "/c/Program Files (x86)/Inno Setup 6" "/c/Program Files/Inno Setup 6" -maxdepth 1 -iname "ISCC.exe" 2>/dev/null
+find "/c/Program Files (x86)/Inno Setup 6" "/c/Program Files/Inno Setup 6" "$HOME/AppData/Local/Programs/Inno Setup 6" -maxdepth 1 -iname "ISCC.exe" 2>/dev/null
 ```
+
+**Confirmed during execution on this machine:** winget did a per-user install, not the system-wide default — the real path is `C:\Users\Madsj\AppData\Local\Programs\Inno Setup 6\ISCC.exe`. Task 4 and Task 5 below have been updated to use this path instead of the `Program Files (x86)` default.
 
 No commit (nothing in the repo changes).
 
@@ -165,7 +167,7 @@ Notes for whoever implements this:
 
 ```bash
 cd Python
-"/c/Program Files (x86)/Inno Setup 6/ISCC.exe" packaging/installer.iss
+"/c/Users/Madsj/AppData/Local/Programs/Inno Setup 6/ISCC.exe" packaging/installer.iss
 ```
 
 - [ ] **Step 3: Verify the output**
@@ -228,7 +230,7 @@ dev-machine install: `winget install --id JRSoftware.InnoSetup`). Run after the 
 above, from `Python/`:
 
 ```
-"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" packaging\installer.iss
+"%LocalAppData%\Programs\Inno Setup 6\ISCC.exe" packaging\installer.iss
 ```
 
 Produces `dist\Soundproject-Setup-1.0.0.exe` — a single file that installs the app,

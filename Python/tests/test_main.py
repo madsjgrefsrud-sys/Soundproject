@@ -1,3 +1,4 @@
+import time
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -67,3 +68,18 @@ def test_midi_loop_survives_exception_and_continues(capsys):
 
     assert midi.read.call_count == 2
     assert "boom" in capsys.readouterr().out
+
+
+def test_midi_loop_does_not_reconnect_every_iteration_when_disconnected(monkeypatch):
+    midi = MagicMock()
+    midi.connected = False
+    midi.read.side_effect = [None, None, None, _StopLoop()]
+    inputs, control, buttons, bridge = MagicMock(), MagicMock(), MagicMock(), MagicMock()
+
+    monkeypatch.setattr(time, "time", lambda: 1000.0)
+    monkeypatch.setattr(time, "sleep", lambda seconds: None)
+
+    with pytest.raises(_StopLoop):
+        midi_loop(midi, inputs, control, buttons, bridge)
+
+    assert midi.reconnect.call_count == 1

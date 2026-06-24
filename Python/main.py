@@ -34,15 +34,18 @@ def dispatch_midi_message(msg, inputs, control, buttons, bridge):
 
 def midi_loop(midi, inputs, control, buttons, bridge):
     last_bind = 0
+    last_reconnect_attempt = 0
     while True:
         try:
-            if not midi.connected:
+            now = time.time()
+
+            if not midi.connected and now - last_reconnect_attempt > 2:
+                last_reconnect_attempt = now
                 midi.reconnect()
                 if midi.connected:
                     inputs.bind_all_sliders()
 
             msg = midi.read()
-            now = time.time()
 
             if now - last_bind > 5:
                 inputs.bind_all_sliders()

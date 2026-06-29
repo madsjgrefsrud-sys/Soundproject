@@ -2,7 +2,7 @@
 //
 // 5x4 diode-protected button matrix (20 keys) -> MIDI notes 60-79
 // 2 potentiometers                            -> MIDI CC 1, CC 2
-// I2C bus reserved for a future peripheral (not yet implemented)
+// I2C macropad (20 keys, slave @ I2C_MACROPAD_ADDR) -> MIDI notes 80-99
 //
 // Board:    ESP32S3 Dev Module
 // Required: Tools > USB Mode > "USB-OTG (TinyUSB)"
@@ -48,9 +48,15 @@ const uint8_t CC_THRESHOLD = 2;
 const uint8_t ADC_SAMPLES = 8;
 uint8_t lastCCValue[NUM_POTS] = {0, 0};
 
-// ---- I2C (reserved, not yet implemented) -------------------------------
+// ---- I2C macropad (slave board, 20 keys) -------------------------------
 const uint8_t I2C_SDA_PIN = 8;
 const uint8_t I2C_SCL_PIN = 9;
+const uint8_t I2C_MACROPAD_ADDR = 0x42;
+const uint8_t MACROPAD_FIRST_NOTE = 80;
+const uint8_t MACROPAD_NUM_KEYS = 20;
+
+bool macropadKeyState[MACROPAD_NUM_KEYS] = {false};
+bool macropadConnected = false;
 
 void scanMatrix() {
   for (uint8_t r = 0; r < NUM_ROWS; r++) {
@@ -97,8 +103,33 @@ void readPots() {
   }
 }
 
-// TODO: implement once the I2C peripheral is finalized.
 void readI2CInputs() {
+  uint8_t report[3];
+  Wire.requestFrom(I2C_MACROPAD_ADDR, sizeof(report));
+
+  if (Wire.available() < (int)sizeof(report)) {
+    macropadConnected = false;
+    Wire.flush();
+    return;
+  }
+  macropadConnected = true;
+
+  for (uint8_t i = 0; i < sizeof(report); i++) {
+    report[i] = Wire.read();
+  }
+
+  for (uint8_t id = 0; id < MACROPAD_NUM_KEYS; id++) {
+    bool pressed = (report[id / 8] >> (id % 8)) & 0x01;
+    if (pressed != macropadKeyState[id]) {
+      macropadKeyState[id] = pressed;
+      uint8_t note = MACROPAD_FIRST_NOTE + id;
+      if (pressed) {
+        MIDI.noteOn(note, 127);
+      } else {
+        MIDI.noteOff(note, 0);
+      }
+    }
+  }
 }
 
 void setup() {

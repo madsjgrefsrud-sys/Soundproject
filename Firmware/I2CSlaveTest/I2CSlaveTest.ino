@@ -1,9 +1,8 @@
-// I2C slave test for ESP32-C3.
+// I2C slave test for ESP32-C3 SuperMini.
 // Responds to master requests with 3 known bytes + a counter.
 // Open Serial Monitor at 115200 baud.
 //
-// Board:   ESP32C3 Dev Module
-// USB CDC on Boot: Enabled
+// Board:   ESP32C3 Dev Module  (USB CDC on Boot: Enabled)
 // SDA=GPIO8  SCL=GPIO9  Address=0x42
 
 #include <Arduino.h>
@@ -28,9 +27,11 @@ void setup() {
   Serial.println("=== I2C slave test (C3) ===");
   Serial.println("Waiting for master requests...");
 
-  Wire.begin((uint8_t)I2C_ADDR, I2C_SDA_PIN, I2C_SCL_PIN);
+  bool ok = Wire.begin(I2C_ADDR);
   Wire.onRequest(onRequest);
 
+  Serial.print("Wire.begin slave: ");
+  Serial.println(ok ? "OK" : "FAILED");
   Serial.println("Slave ready at 0x42.");
 }
 

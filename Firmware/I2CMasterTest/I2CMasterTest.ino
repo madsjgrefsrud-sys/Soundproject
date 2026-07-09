@@ -1,15 +1,15 @@
-// I2C master test for ESP32 D32.
+// I2C master test for ESP32-S3.
 // Polls slave at 0x42 every second and prints the 3 received bytes.
 // Open Serial Monitor at 115200 baud.
 //
-// Board:   WEMOS D32 (or ESP32 Dev Module)
-// SDA=GPIO21  SCL=GPIO22  (default I2C pins on ESP32)
+// Board:   ESP32S3 Dev Module
+// SDA=GPIO8  SCL=GPIO9
 
 #include <Arduino.h>
 #include <Wire.h>
 
-const uint8_t I2C_SDA_PIN = 21;
-const uint8_t I2C_SCL_PIN = 22;
+const uint8_t I2C_SDA_PIN = 8;
+const uint8_t I2C_SCL_PIN = 9;
 const uint8_t SLAVE_ADDR  = 0x42;
 const uint8_t READ_BYTES  = 3;
 
@@ -22,7 +22,7 @@ void setup() {
   Serial.println("=== I2C master test (S3) ===");
   Serial.println("Polling slave 0x42 every second...");
 
-  Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+  Wire.begin((int)I2C_SDA_PIN, (int)I2C_SCL_PIN);
   Wire.setClock(100000);
 }
 

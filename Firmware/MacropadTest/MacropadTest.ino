@@ -45,7 +45,7 @@ void setup() {
     digitalWrite(X_PINS[x], HIGH);
   }
 
-  Wire.begin((uint8_t)I2C_ADDR, I2C_SDA_PIN, I2C_SCL_PIN);
+  Wire.begin(I2C_ADDR);
   Wire.onRequest(onI2CRequest);
 
   Serial.println("I2C slave ready at address 0x42.");

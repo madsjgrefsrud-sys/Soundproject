@@ -5,9 +5,9 @@
 //
 // Board:    ESP32C3 Dev Module (ESP32C3-SuperMini)
 // Wiring (per schematic):
-//   Y1=GPIO10  Y2=GPIO9  Y3=GPIO8  Y4=GPIO5   (INPUT_PULLUP)
-//   X1=GPIO0   X2=GPIO1  X3=GPIO2  X4=GPIO3  X5=GPIO4   (driven, idle HIGH)
-//   SDA=GPIO6  SCL=GPIO7
+//   Y1=GPIO21  Y2=GPIO20  Y3=GPIO10  Y4=GPIO6   (INPUT_PULLUP)
+//   X1=GPIO0   X2=GPIO1   X3=GPIO2   X4=GPIO3  X5=GPIO4  (driven, idle HIGH)
+//   SDA=GPIO8  SCL=GPIO9
 //
 // Diodes point Y -> X (cathode toward the X row), so X must be the driven
 // side (current needs to flow from the pulled-up Y line, through the
@@ -20,10 +20,10 @@
 #include <Wire.h>
 
 const uint8_t I2C_ADDR = 0x42;
-const uint8_t I2C_SDA_PIN = 6;
-const uint8_t I2C_SCL_PIN = 7;
+const uint8_t I2C_SDA_PIN = 8;
+const uint8_t I2C_SCL_PIN = 9;
 
-const uint8_t Y_PINS[] = {10, 9, 8, 5};         // Y1, Y2, Y3, Y4 - INPUT_PULLUP
+const uint8_t Y_PINS[] = {21, 20, 10, 6};        // Y1, Y2, Y3, Y4 - INPUT_PULLUP
 const uint8_t X_PINS[] = {0, 1, 2, 3, 4};       // X1, X2, X3, X4, X5 - OUTPUT, idle HIGH
 const uint8_t NUM_Y = sizeof(Y_PINS) / sizeof(Y_PINS[0]);
 const uint8_t NUM_X = sizeof(X_PINS) / sizeof(X_PINS[0]);
